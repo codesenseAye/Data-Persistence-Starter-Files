@@ -12,12 +12,26 @@ public class MainManager : MonoBehaviour
 
     public Text ScoreText;
     public GameObject GameOverText;
+    public GameObject HighScoreText;
     
     private bool m_Started = false;
     private int m_Points;
     
     private bool m_GameOver = false;
 
+    void LoadScore()
+    {
+        Manager.Score? currentScore = Manager.GetHighestScore();
+        Text highScore = HighScoreText.GetComponent<Text>();
+
+        if (currentScore is null)
+        {
+            highScore.text = "";
+            return;
+        }
+
+        highScore.text = "Best Score : " + currentScore.PlayerName + " : " + currentScore.score;
+    }
     
     // Start is called before the first frame update
     void Start()
@@ -36,6 +50,8 @@ public class MainManager : MonoBehaviour
                 brick.onDestroyed.AddListener(AddPoint);
             }
         }
+
+        LoadScore();
     }
 
     private void Update()
@@ -72,5 +88,16 @@ public class MainManager : MonoBehaviour
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+
+        Manager.Score? currentScore = Manager.GetHighestScore();
+
+        if (currentScore is not null && currentScore.score > m_Points)
+        {
+            // dont set the highest score if its not higher than the last
+            return;
+        }
+
+        Manager.SaveScore(m_Points);
+        LoadScore();
     }
 }
